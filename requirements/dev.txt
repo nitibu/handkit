@@ -1,0 +1,24 @@
+asgiref==3.3.1
+attrs==20.3.0
+baostock==0.8.8
+certifi==2020.12.5
+Django==3.1.4
+django-handkit-kitstock @ file:///Users/nitb/PycharmProjects/handkit/apps/django-handkit-kitstock/dist/django-handkit-kitstock-0.1.tar.gz
+importlib-metadata==3.2.0
+iniconfig==1.1.1
+mysqlclient==2.0.2
+numpy==1.19.4
+packaging==20.8
+pandas==1.1.5
+pluggy==0.13.1
+py==1.10.0
+PyMySQL==0.10.1
+pyparsing==2.4.7
+pytest==6.2.0
+python-dateutil==2.8.1
+pytz==2020.4
+six==1.15.0
+sqlparse==0.4.1
+toml==0.10.2
+typing-extensions==3.7.4.3
+zipp==3.4.0

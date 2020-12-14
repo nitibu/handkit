@@ -1,2 +1,2 @@
 
-from .urls import urlpatterns
+default_app_config = 'kitstock.apps.KitstockConfig'
