@@ -9,7 +9,7 @@ import pytest
 from django.test import TestCase
 from django.utils import timezone
 
-from apps.kitstock.models import StockKData
+from kitstock.models import StockKData
 
 
 class TestBaoStock(object):

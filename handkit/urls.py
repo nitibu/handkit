@@ -18,5 +18,5 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('kitstock/', include('kitstock.urls')),
+    path('kitstock/', include('apps.django-handkit-kitstock.kitstock.urls')),
 ]
