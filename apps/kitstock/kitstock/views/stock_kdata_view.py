@@ -5,19 +5,21 @@ from decimal import Decimal
 
 import baostock
 from baostock.data.resultset import ResultData
+from django.db.models import QuerySet
 from django.http import HttpResponse
 from django.utils import timezone
 from django.views import View
 
+# 独立app逻辑
 from kitstock.models import StockKData, StockInfoBase
 
 
 class StockKDataView(View):
     logger = logging.getLogger(__name__)
-    lg = baostock.login()
+    # lg = baostock.login()
     
-    def __del__(self):
-        baostock.logout()
+    # def __del__(self):
+    #     baostock.logout()
     
     @classmethod
     def is_exist(self, kdata: ResultData, start_date: str) -> bool:
@@ -41,19 +43,20 @@ class StockKDataView(View):
             start_date = "2015-01-04" # baostock目前能查到的最早数据
         else:
             start_date = row.date.strftime("%Y-%m-%d")
-        end_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        end_date = timezone.now().strftime("%Y-%m-%d")
         return start_date, end_date
     
-    def _get_stock_kdata(self, code:string, update_time: datetime.date) -> list:
+    def _get_stock_kdata(self, code:string, update_time: datetime.datetime) -> list:
         '''
             1. 查询数据库现有数据，获取离当日最近日期的数据（判断当日是否是最后一个工作日，是的话，就去下一个工作日作为startDate）, endDate作为截止日期
             2. 根据上一步的startDate和endDate，获取历史数据
             3. 保存获取到的数据到数据库里
         '''
-        
-        if update_time.date.strftime("%Y-%m-%d") < datetime.datetime.now().strftime("%Y-%m-%d"):
-            start_date = update_time.date.strftime("%Y-%m-%d")
-            end_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        print("%s, %s, %s" % (__name__, "update_time", update_time.strftime("%Y-%m-%d")))
+        print("%s, %s, %s" % (__name__, "now_time", timezone.now().strftime("%Y-%m-%d")))
+        if update_time.strftime("%Y-%m-%d") < timezone.now().strftime("%Y-%m-%d"):
+            start_date = update_time.strftime("%Y-%m-%d")
+            end_date = timezone.now().strftime("%Y-%m-%d")
         else:
             start_date, end_date = self._update_date_range(code)
         # 根据start date 和end date 获取历史数据
@@ -84,20 +87,16 @@ class StockKDataView(View):
         return StockKData.objects.bulk_create(result)
     
     def get(self, request):
+        print("%s, %s, %s" % (__name__, "request", request.get_full_path()))
         return self.update()
+        # return self.unique()
     
     def _store_exist_stock_kdata(self):
         '''
             过滤已经存在的kdata数据（kdata，自定义用来描述市盈率相关指标）
         '''
         stockSet = self._query_all_stock()
-        max_count = 0
         for item in stockSet:
-            # DEBUG CODE START
-            # max_count += 1
-            # if max_count > 100:
-            #     break
-            # DEBUG CODE END
             new_data = self._get_stock_kdata(item.code, item.update_time)
             # 有数据才进行插入操作
             if new_data.__len__() > 0:
@@ -105,7 +104,7 @@ class StockKDataView(View):
                 self._batch_insert(new_data)
             # 更新基础表股票更新时间
             StockInfoBase.objects.filter(code=item.code).update(
-                update_time=timezone.make_aware(datetime.datetime.now().__format__('Y-%m-%d')))
+                update_time=timezone.now().date())
     
     def _query_all_stock(self):
         '''
@@ -115,4 +114,22 @@ class StockKDataView(View):
     
     def update(self):
         self._store_exist_stock_kdata()
+        return HttpResponse("success")
+    
+    def _delete_repeating_data(self, code:string):
+        dataset = StockKData.objects.filter(code=code)
+        filter_date = list()
+        for item in dataset:
+            if item.date not in filter_date:
+                filter_date.append(item.date)
+                continue
+            else:
+                StockKData.objects.get(id=item.id).delete()
+                
+            
+    
+    def unique(self):
+        stockSet = self._query_all_stock()
+        for item in stockSet:
+            self._delete_repeating_data(item.code)
         return HttpResponse("success")

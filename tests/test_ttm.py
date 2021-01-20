@@ -9,32 +9,12 @@ import pytest
 from django.test import TestCase
 from django.utils import timezone
 
-from kitstock.models import StockKData
-
-
 class TestBaoStock(object):
     logger = logging.getLogger(__name__)
     lg = bs.login()
     
     def __del__(self):
         bs.logout()
-    
-    def get_stock_kdata(self, code):
-        rs = bs.query_history_k_data(code, "code,close,peTTM,pbMRQ,psTTM,pcfNcfTTM,date")
-        result = list()
-        while (rs.error_code == '0') & rs.next():
-            kdata = rs.get_row_data()
-            result.append(
-                StockKData(
-                    code=kdata[0],
-                    close=Decimal(kdata[1]),
-                    peTTM=Decimal(kdata[2]),
-                    pbMRQ=Decimal(kdata[3]),
-                    psTTM=Decimal(kdata[4]),
-                    pcfNcfTTM=Decimal(kdata[5]),
-                    date=timezone.make_aware(datetime.datetime.strptime(kdata[6], '%Y-%m-%d'))
-                ))
-        StockKData.objects.bulk_create(result)
     
     @pytest.mark.django_db(transaction=True)
     def test_store_kdata(self):
@@ -63,6 +43,9 @@ class TestBaoStock(object):
         # # stock_df.to_csv('./stk_data/stk_list.csv', encoding='utf8', index=False)
         # stockList = stock_df.tolist()
         # self.logger.info(json.dumps(stockList))
+        
+    def test_now(self):
+        print(datetime.datetime.now().date())
 
 
 if __name__ == '__main__':

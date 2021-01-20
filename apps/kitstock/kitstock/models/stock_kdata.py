@@ -19,5 +19,8 @@ class StockKData(models.Model):
     pcfNcfTTM = models.DecimalField(decimal_places=10, max_digits=20)
     date = models.DateTimeField()
     
+    class Meta:
+        unique_together = ("code", "date")
+    
     def __str__(self):
-        return "ttm info"
+        return "stock kdate"
